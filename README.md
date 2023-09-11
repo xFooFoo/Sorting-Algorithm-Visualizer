@@ -1,3 +1,6 @@
 # Sorting-Algorithm-Visualizer
 Currently, it can only visualize bubble sort.
-Only working for bubble sort, will implement more customization UI's and other in-place sorting algorithms
+
+Features to add:
+- More customization UI's (speed, pause/play, max values, number of data values, exit)
+- other in-place sorting algorithms
