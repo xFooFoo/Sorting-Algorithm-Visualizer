@@ -7,34 +7,28 @@ import textwrap
 import pygame
 
 
+#Bubble sort returns an iterator of the values in data FOR EACH iteration
 def bubblesort(data: List[int]):
     n = len(data)
-    plotting = True
-    while plotting: #while-loop is for user's early stoppage
-        for run in range(0,n):
-            for counter in range(0,n - run - 1): #minus one since it checks value on RHS index is +1 in if-statement
-                if data[counter] > data[counter + 1]:
-                    data[counter + 1], data[counter] = data[counter] , data[counter + 1] #swap
-                    print(f"Run {run+1}, Step {counter+1}: {data}") #Prints each step for visualization
-                    #Plot/Screen updates
-                    update_plot(data)
-                    
-        #When algorithm finishes
-        plotting = False
+    for run in range(0,n):
+        for counter in range(0,n - run - 1): #minus one since it checks value on RHS index is +1 in if-statement
+            if data[counter] > data[counter + 1]:
+                data[counter + 1], data[counter] = data[counter] , data[counter + 1] #swap
+                print(f"Run {run+1}, Step {counter+1}: {data}") #Prints each step for visualization
+                yield data
+
 
 #PLOT FOR IN-PLACE ALGORITHMS
 #, text_surface: pygame.Surface, text_rect: pygame.Rect
 def update_plot(data: List[int]):
-    # fill the screen with a color to wipe away anything from last frame
-    screen.fill("white")
     # Draws the title
     screen.blit(text_surface, text_rect)
     # Draws each data as a block
     for i in range(0, len(data)):
         pygame.draw.rect(screen, purpleBlock, (i * (SCREEN_WIDTH/DATA_SIZE) + UI_WIDTH_PADDING/2, SCREEN_HEIGHT + UI_HEIGHT_PADDING/2 - data[i] , SCREEN_WIDTH/DATA_SIZE, data[i]))
         #Delay necessary to see each update
-        pygame.time.delay(1) #make this customizable
-    pygame.display.flip()
+        pygame.time.delay(DELAY_IN_MS) #make this customizable
+    
 
 def reset():
     random_numbers = [random.randint(1, MAX_VALUE) for _ in range(DATA_SIZE)]
@@ -48,12 +42,13 @@ def create_title(title: str):
     return text_surface, text_rect
 
 # Generate a list of random numbers
-DATA_SIZE = 100 #make this customizable & keep them even to prevent rounding errors when drawing & positioning
+DATA_SIZE = 10 #make this customizable & keep them even to prevent rounding errors when drawing & positioning
 MAX_VALUE = 800 #Anything greater than screen_height would go over the frame...
 random_numbers = [random.randint(1, MAX_VALUE) for _ in range(DATA_SIZE)]
 print(f"{random_numbers}")
 
 #Pygame setup
+DELAY_IN_MS = 1
 UI_WIDTH_PADDING = 50
 UI_HEIGHT_PADDING = 200
 SCREEN_WIDTH = 1400
@@ -66,7 +61,9 @@ clock = pygame.time.Clock()
 
 
 running = True
-plotting = False
+plotting = True
+data_iterator = bubblesort(random_numbers)
+text_surface, text_rect = create_title("Bubblesort")
 
 while running:
     # poll for events
@@ -75,11 +72,23 @@ while running:
         if event.type == pygame.QUIT:
             running = False
             plotting = False
-
+        #Event for loading iterator comes here, then we draw
+    
+    # fill the screen with a color to wipe away anything from last frame
+    screen.fill("white")
     # RENDER YOUR GAME HERE
-    text_surface, text_rect = create_title("Bubblesort")
-    bubblesort(random_numbers)
-
+    if plotting:
+        try:
+            update_plot(next(data_iterator)) #Raises StopIteration error on completion
+        except StopIteration:
+            print("Data has been sorted")
+            plotting = False
+        except Exception as e:
+            print(f"An unexpected exception occurred: {e}")
+        else:
+            print("Nothing to plot.")
+    
+    pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
 
 pygame.quit()
