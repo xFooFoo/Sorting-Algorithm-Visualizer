@@ -40,7 +40,6 @@ def selection_sort(data: List[int]):
 def quicksort(data: List[int], low: int, high: int):
     print(f"data {data}, low {low}, high {high}")
     if low >= high:
-        yield data
         return
     left = low
     right = high
@@ -74,11 +73,8 @@ def quicksort(data: List[int], low: int, high: int):
     print(f"Pivot back {data}, left {left}, right {right}")
     yield data
     #recursion on LHS & RHS of the pivot
-    quicksort(data, low, left - 1)
-    quicksort(data, left + 1, high)
-
-
-
+    yield from quicksort(data, low, left - 1)
+    yield from quicksort(data, left + 1, high)
 
 #PLOT FOR IN-PLACE ALGORITHMS
 def update_plot(data: List[int], title: str):
@@ -161,12 +157,12 @@ class DropDownBox():
         return -1
 
 # Generate a list of random numbers
-DATA_SIZE = 100 #make this customizable & keep them even to prevent rounding errors when drawing & positioning
+DATA_SIZE = 50 #make this customizable & keep them even to prevent rounding errors when drawing & positioning
 MAX_VALUE = 800 #Anything greater than screen_height would go over the frame...
 
 #Pygame setup
 ALGORITHMS = ["bubble sort", "insertion sort", "selection sort", "quick sort"]
-DELAY_IN_MS = 3
+DELAY_IN_MS = 1
 UI_WIDTH_PADDING = 50
 UI_HEIGHT_PADDING = 200
 SCREEN_WIDTH = 1400
@@ -181,7 +177,7 @@ titleFont = pygame.font.Font(None, 36)  # You can specify a font file or use Non
 dropDownFont = pygame.font.Font(None, 20)  # You can specify a font file or use None for a default font
 purpleBlock =  pygame.Color(67, 1, 135, 255)
 
-dropDownBox = DropDownBox(20/2 + 25, SCREEN_HEIGHT + UI_HEIGHT_PADDING/2, 20, 20, purpleBlock, purpleBlock, dropDownFont, "Select", ALGORITHMS, -1)
+dropDownBox = DropDownBox(20/2 + 25, SCREEN_HEIGHT + UI_HEIGHT_PADDING/2, 100, 20, purpleBlock, purpleBlock, dropDownFont, "Algorithms", ALGORITHMS, -1)
 
 running = True
 plotting = False
@@ -229,20 +225,11 @@ while running:
                 data_iterator = selection_sort(random_numbers)
             elif (dropDownBox.options[dropDownBox.selected] == "quick sort"):
                 data_iterator = quicksort(random_numbers, 0, DATA_SIZE - 1)
+                #print(f"Data iterator: {list(data_iterator)}")
     
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
 
 pygame.quit()
-
-#TESTING CODE
-
-output = random_numbers
-#Test whether algorithm sorts properly
-if output == sorted(random_numbers):
-    print("The list has been sorted.")
-else:
-    print(output)
-    print(sorted(random_numbers))
 
 
