@@ -1,9 +1,10 @@
 # Sorting-Algorithm-Visualizer
 Currently, it can only visualize bubble/insertion/selection sort.
 
-Features to add:
+To-do List:
 - More customization UI's (speed, pause/play, max values, number of data values, exit button)
-- Better looking selection buttons
+- Better-looking selection buttons
+- Organise my code better by creating new classes and files
 
 Bugs to fix:
-- Getting quicksort visualize properly...
+- Getting quicksort to visualise properly...
