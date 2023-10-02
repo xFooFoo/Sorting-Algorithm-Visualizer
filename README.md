@@ -2,10 +2,9 @@
 Currently, it can only visualize bubble/insertion/selection sort.
 
 To-do List:
-- More customization UI's (speed, pause/play, max values, number of data values, exit button)
-- Better-looking selection buttons
+- More customization UI's (speed, max value in data, number of values in data)
 - Organise my code better by creating new classes and files
-- Visualise heapsort and mergesort
+- Visualise heapsort
 
 Bugs to fix:
 - Finding bugs...
