@@ -1,3 +1,10 @@
+"""
+Need to create a game class that holds the objects and update/draw/reset all objects
+Definitely need a subclass for pauseButton and playButton
+Maybe a graph class?
+"""
+
+
 from typing import List
 import random
 import numpy as np
@@ -76,11 +83,14 @@ def quicksort(data: List[int], low: int, high: int):
     yield from quicksort(data, low, left - 1)
     yield from quicksort(data, left + 1, high)
 
-#PLOT FOR IN-PLACE ALGORITHMS
-def update_plot(data: List[int], title: str):
+def draw_title(title: str):
     title_surface, title_rect = create_textbox(title, purpleBlock, (SCREEN_WIDTH + UI_WIDTH_PADDING) / 2, UI_HEIGHT_PADDING/4, titleFont)
     # Draws the title
     screen.blit(title_surface, title_rect)
+
+#PLOT FOR IN-PLACE ALGORITHMS
+def update_plot(data: List[int]):
+    
     global comparisons 
     comparisons += 1
     # Draws each data as a block
@@ -96,6 +106,10 @@ def reset():
     plotting = False
     global comparisons 
     comparisons = 0
+    pauseButton.text = "Pause"
+    startButton.text = "Start"
+    startButton.running = False
+    pauseButton.running = True
 
 def create_textbox(title: str, colour: pygame.Color, x: int, y: int, font: pygame.font.Font): #add font
     # Create a font object
@@ -104,9 +118,55 @@ def create_textbox(title: str, colour: pygame.Color, x: int, y: int, font: pygam
     text_rect.center = (x, y)
     return text_surface, text_rect
 
+class Button():
+    def __init__(self, x, y, w, h, colour, highlight_colour, font, text, running):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.colour = colour
+        self.highlight_colour = highlight_colour
+        self.font = font
+        self.text = text
+        self.type = text
+        self.running = running #True = Started or Resumed, False = Stopped or Paused
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, self.highlight_colour, self.rect, 0)
+        default_surface, default_rect = create_textbox(self.text, self.colour, self.rect.center[0], self.rect.center[1], self.font)
+        surface.blit(default_surface, default_rect)
+
+    def update(self, event_list):
+        mousePos = pygame.mouse.get_pos()
+        if (self.rect.collidepoint(mousePos)):
+            self.colour = white
+            self.highlight_colour = purpleBlock
+        else:
+            self.colour = purpleBlock
+            self.highlight_colour = white
+
+        #Need to extend Button class into sub-classes such as pause/starButton   
+        for event in event_list:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if (self.rect.collidepoint(mousePos)):
+                    global plotting
+                    if self.type == "Start":
+                        if self.text == "Start":
+                            plotting = True
+                            self.running = True
+                            self.text = "Halt"
+                        else:
+                            self.text = "Start"
+                            self.running = False
+                            reset()
+                    else: #PauseButton Case
+                        if self.text == "Pause":
+                            self.text = "Resume"
+                            self.running = False
+                        else:
+                            self.text = "Pause"
+                            self.running = True
+
 class DropDownBox():
     
-    def __init__(self, x, y, w, h, colour, highlight_colour, font, default, options, selected = -1):
+    def __init__(self, x, y, w, h, colour, highlight_colour, font, default, options, mouse_on = -1, selected = -1):
         self.rect = pygame.Rect(x, y, w, h)
         self.colour = colour
         self.highlight_colour = highlight_colour
@@ -115,34 +175,40 @@ class DropDownBox():
         self.options = options
         self.draw_menu = False
         self.menu_active = False
+        self.mouse_on = mouse_on
         self.selected = selected
 
     def draw(self, surface):
-        #pygame.draw.rect(surface, purpleBlock, self.rect) # boxframe
-        default_surface, default_rect = create_textbox(self.default, purpleBlock, self.rect.center[0], self.rect.center[1], self.font)
-        screen.blit(default_surface, default_rect)
-
+        #Menu
+        pygame.draw.rect(surface, self.highlight_colour[1 if self.menu_active else 0], self.rect) # bg colour
+        default_surface, default_rect = create_textbox(self.default, self.colour[0 if self.menu_active else 1], self.rect.center[0], self.rect.center[1], self.font)
+        surface.blit(default_surface, default_rect)
+        #Drop-down options
         if self.draw_menu:
             for i, text in enumerate(self.options):
                 rect = self.rect.copy()
                 rect.y += (i+1) * self.rect.h
-                option_surface, option_rect = create_textbox(text, purpleBlock, rect.center[0], rect.center[1], dropDownFont)
+
+                pygame.draw.rect(surface, self.colour[1 if self.mouse_on == i else 0], rect) # bg colour
+                option_surface, option_rect = create_textbox(text, self.colour[0 if self.mouse_on == i else 1], rect.center[0], rect.center[1], dropDownFont)
                 screen.blit(option_surface, option_rect)
                 #draw each option and display
 
     def update(self, event_list):
         mousePos = pygame.mouse.get_pos()
         self.menu_active = self.rect.collidepoint(mousePos)
-        self.selected = -1 #reset to nothing selected for next update
+        if not self.draw_menu:
+            self.mouse_on = -1
 
         for i in range(len(self.options)):
             rect = self.rect.copy()
             rect.y += (i+1) * self.rect.h
             if rect.collidepoint(mousePos):
-                self.selected = i
+                self.mouse_on = i #this is for picking which highlighted cell to pick
                 break #can only select one thing at a time so don't needa check the rest
 
-        if not self.menu_active and self.selected == -1:
+        #Check if mouse is on any of the options
+        if not self.menu_active and self.mouse_on == -1:
             self.draw_menu = False
 
         for event in event_list:
@@ -151,10 +217,10 @@ class DropDownBox():
                 if self.menu_active:
                     self.draw_menu = not self.draw_menu
                 #Case to return selected option
-                elif self.draw_menu and self.selected >= 0:
+                elif self.draw_menu and self.mouse_on >= 0:
                     self.draw_menu = False
-                    return self.selected
-        return -1
+                    self.selected = self.mouse_on
+        return self.selected
 
 # Generate a list of random numbers
 DATA_SIZE = 50 #make this customizable & keep them even to prevent rounding errors when drawing & positioning
@@ -176,8 +242,12 @@ clock = pygame.time.Clock()
 titleFont = pygame.font.Font(None, 36)  # You can specify a font file or use None for a default font
 dropDownFont = pygame.font.Font(None, 20)  # You can specify a font file or use None for a default font
 purpleBlock =  pygame.Color(67, 1, 135, 255)
+#highlightBackground = pygame.Color(233, 240, 46, 255)
+white = pygame.Color(255, 255, 255, 255)
 
-dropDownBox = DropDownBox(20/2 + 25, SCREEN_HEIGHT + UI_HEIGHT_PADDING/2, 100, 20, purpleBlock, purpleBlock, dropDownFont, "Algorithms", ALGORITHMS, -1)
+dropDownBox = DropDownBox(20/2 + 25, SCREEN_HEIGHT + UI_HEIGHT_PADDING/2, 100, 20, [white, purpleBlock], [white, purpleBlock], dropDownFont, "Algorithms", ALGORITHMS, -1)
+startButton = Button(SCREEN_WIDTH - (20/2 + 25), SCREEN_HEIGHT + UI_HEIGHT_PADDING/2, 100, 20, white, purpleBlock, dropDownFont, "Start", False)
+pauseButton = Button(SCREEN_WIDTH - (20/2 + 25), SCREEN_HEIGHT + UI_HEIGHT_PADDING/2 + 20, 100, 20, white, purpleBlock, dropDownFont, "Pause", True)
 
 running = True
 plotting = False
@@ -195,28 +265,64 @@ while running:
     
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("white")
-    # RENDER YOUR GAME HERE
+
+    # DRAW BUTTONS
     dropDownBox.draw(screen)
-    dropDownBox.selected  = dropDownBox.update(event_list)
-    print(dropDownBox.selected)
+    startButton.draw(screen)
+    pauseButton.draw(screen)
+
+    # DRAW TITLE
+    
+
+    # BUTTON UPDATES
+    startButton.update(event_list)
+    pauseButton.update(event_list)
+
+    # TESTING SELECTED OPTION
     #if (dropDownBox.selected != -1):
-    #    print(f"{dropDownBox.options[dropDownBox.selected]}")
+    print(f"{dropDownBox.options[dropDownBox.selected]}")
+    print(f"Pause: {pauseButton.running}")
+    print(f"Start: {startButton.running}")
+    print(f"plotting: {plotting}")
+
+    # PLOT LOGIC
     if plotting:
-        try:
-            update_plot(next(data_iterator), titleText) #Raises StopIteration error on completion
-        except StopIteration:
-            print("The data has been sorted")
-            reset()
-        except Exception as e:
-            print(f"An unexpected exception occurred: {e}")
+        if pauseButton.running: #IF PAUSED, DRAW THE LAST ITERATION OVER AND OVER AGAIN
+            try:
+                draw_title(titleText)
+                currentData = next(data_iterator) #updates to next step to draw
+                update_plot(currentData) #Raises StopIteration error on completion
+            except StopIteration:
+                print("The data has been sorted")
+                dropDownBox.selected = -1
+                reset()
+            except Exception as e:
+                print(f"An unexpected exception occurred: {e}")
+            else:
+                print("Nothing to plot.")
+
         else:
-            print("Nothing to plot.")
-    else:
-        if (dropDownBox.selected != -1):
+            try:
+                draw_title(titleText)
+                update_plot(currentData) #Raises StopIteration error on completion
+            except StopIteration:
+                print("The data has been sorted")
+                dropDownBox.selected = -1
+                reset()
+            except Exception as e:
+                print(f"An unexpected exception occurred: {e}")
+            else:
+                print("Nothing to plot.")
+
+
+    else: # PICKING ALGORITHM
+        # CHECK SELECTED ALGORITHM
+        dropDownBox.selected  = dropDownBox.update(event_list)
+        if (dropDownBox.selected != -1 and not startButton.running): #if an algorithm is selected and not started yet
             random_numbers = [random.randint(1, MAX_VALUE) for _ in range(DATA_SIZE)]
             print(f"{random_numbers}")
             titleText = dropDownBox.options[dropDownBox.selected]
-            plotting = True
+            draw_title(titleText)
             if (dropDownBox.options[dropDownBox.selected] == "bubble sort"):
                 data_iterator = bubblesort(random_numbers)
             elif (dropDownBox.options[dropDownBox.selected] == "insertion sort"):
@@ -229,7 +335,6 @@ while running:
     
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
-
 pygame.quit()
 
 
