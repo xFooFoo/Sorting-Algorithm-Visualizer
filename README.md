@@ -1,5 +1,5 @@
 # Sorting-Algorithm-Visualizer
-Currently, it can only visualize bubble/insertion/selection sort.
+Currently, it can visualize bubble, insertion, selection and merge sort.
 
 To-do List:
 - More customization UI's (speed, max value in data, number of values in data)
