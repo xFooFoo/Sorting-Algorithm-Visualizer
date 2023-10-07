@@ -1,5 +1,6 @@
 # Sorting-Algorithm-Visualizer
 Visualizer for bubble, insertion, selection and quick sort.
+Built using Pygame
 
 To-do List:
 - More customization UI's (speed, max value in data, number of values in data)
