@@ -1,5 +1,6 @@
 # Sorting-Algorithm-Visualizer
-Currently, it can only visualize bubble/insertion/selection sort.
+Visualizer for bubble, insertion, selection and quick sort.
+Built using Pygame
 
 To-do List:
 - More customization UI's (speed, max value in data, number of values in data)
