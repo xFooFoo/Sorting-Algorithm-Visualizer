@@ -3,12 +3,12 @@
 
 -Built using Pygame
 
-### Download and run the .exe file to use the visualizer with NO SETUP!
+###Download and run the .exe file to use the visualizer with NO SETUP!
 
-### To-do List:
+###To-do List:
 - More customization UI's (speed, max value in data, number of values in data)
 - Organise my code better by creating new classes and files
 - Visualise heapsort
 
-### Bugs to fix:
+###Bugs to fix:
 - Finding bugs...
